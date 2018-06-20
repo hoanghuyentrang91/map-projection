@@ -6,5 +6,11 @@ import { Component } from '@angular/core';
   styleUrls: ['./app.component.css']
 })
 export class AppComponent {
-  title = 'app';
+
+  public getCurrentDateTime():Date{
+    let date = new Date();
+    return date;
+  }
+  date = this.getCurrentDateTime();
+  
 }

@@ -3,11 +3,15 @@ import { NgModule } from '@angular/core';
 
 
 import { AppComponent } from './app.component';
+import { ProjectionsComponent } from './projections/projections.component';
+import { WorldMapComponent } from './world-map/world-map.component';
 
 
 @NgModule({
   declarations: [
-    AppComponent
+    AppComponent,
+    ProjectionsComponent,
+    WorldMapComponent
   ],
   imports: [
     BrowserModule
