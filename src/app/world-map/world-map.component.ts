@@ -1,4 +1,4 @@
-import { Component, OnInit, ViewChild, ElementRef } from '@angular/core';
+import { Component, OnInit, ViewChild, ElementRef, OnChanges } from '@angular/core';
 // import * as d3 from "d3";
 import * as d3 from "assets/libs/d3.v4.min.js"
 import * as topojson from "assets/libs/topojson.js"
@@ -6,8 +6,8 @@ import * as topojson from "assets/libs/topojson.js"
 @Component({
   selector: 'app-world-map',
   template: `<div>
-              <select #projSelect (change)="selectProjection(projSelect.value)">
-                <option *ngFor="let projection of projections" value={{projection}}>{{projection}}</option>
+              <select #projSelect (change)="changeProjection($event.target.value)">
+                <option *ngFor="let projection of projections" value={{projection.index}}>{{projection.name}}</option>
               </select>
             </div>
             <div #world><p>{{name}}</p></div>`,
@@ -18,50 +18,32 @@ export class WorldMapComponent implements OnInit {
   private htmlElement;
   private name;
   private projection;
-  private projections = [d3.geoAzimuthalEqualArea(), 
-    d3.geoAzimuthalEquidistant(),
-    d3.geoGnomonic(),
-    d3.geoOrthographic(),
-    d3.geoStereographic(),
-    d3.geoAlbersUsa(),
-    d3.geoAlbers(),
-    d3.geoConicConformal(),
-    d3.geoConicEqualArea(),
-    d3.geoConicEquidistant(),
-    d3.geoMercator().scale(50),
-    d3.geoTransverseMercator(),
-    d3.geoNaturalEarth1(),
-    d3.geoConicEquidistant()];
+  private projections = [
+    {index: 1, name: "d3.geoEquirectangular()", value: d3.geoEquirectangular()},
+    {index: 2, name: "d3.geoAzimuthalEqualArea()", value: d3.geoAzimuthalEqualArea()},
+    {index: 3, name: "d3.geoAzimuthalEquidistant()", value: d3.geoAzimuthalEquidistant()},
+    {index: 4, name: "d3.geoGnomonic()", value: d3.geoGnomonic()},
+    {index: 5, name: "d3.geoOrthographic()", value: d3.geoOrthographic()},
+    {index: 6, name: "d3.geoStereographic()", value: d3.geoStereographic()},
+    {index: 7, name: "d3.geoAlbersUsa()", value: d3.geoAlbersUsa()},
+    {index: 8, name: "d3.geoAlbers()", value: d3.geoAlbers()},
+    {index: 9, name: "d3.geoConicConformal()", value: d3.geoConicConformal()},
+    {index: 10, name: "d3.geoConicEqualArea()", value: d3.geoConicEqualArea()},
+    {index: 11, name: "d3.geoConicEquidistant()", value: d3.geoConicEquidistant()},
+    {index: 12, name: "d3.geoMercator().scale(80)", value: d3.geoMercator().scale(80)},
+    {index: 13, name: "d3.geoTransverseMercator()", value: d3.geoTransverseMercator()},
+    {index: 14, name: "d3.geoNaturalEarth1()", value: d3.geoNaturalEarth1()},
+    {index: 15, name: "d3.geoConicEquidistant()", value: d3.geoConicEquidistant()}];
 
   constructor() { }
 
   ngOnInit() {
     this.htmlElement = this.chartContainer.nativeElement;
-    console.log(this.htmlElement);
-
     var width = window.innerWidth,
-    height = window.innerHeight,
-    centered,
-    clicked_point;
+    height = window.innerHeight;
 
-    this.projection = d3.geoAzimuthalEqualArea();
+    this.projection = d3.geoEquirectangular();    
     var projection = this.projection;
-
-
-    // var projection = d3.geoAzimuthalEqualArea();
-    // var projection = d3.geoAzimuthalEquidistant();
-    // var projection = d3.geoGnomonic();
-    // var projection = d3.geoOrthographic();
-    // var projection = d3.geoStereographic();
-    // var projection = d3.geoAlbersUsa();
-    // var projection = d3.geoAlbers();
-    // var projection = d3.geoConicConformal();
-    // var projection = d3.geoConicEqualArea();
-    // var projection = d3.geoConicEquidistant();
-    // var projection = d3.geoMercator().scale(50);
-    // var projection = d3.geoTransverseMercator();
-    // var projection = d3.geoNaturalEarth1();
-    // var projection = d3.geoConicEquidistant();
 
         
     var plane_path = d3.geoPath()
@@ -89,9 +71,42 @@ export class WorldMapComponent implements OnInit {
           ;
     });
   }
+
   
-  private selectProjection(projections, index:number){
-    return projections[index];
+  private changeProjection(index:any){
+    this.htmlElement = this.chartContainer.nativeElement;
+    var width = window.innerWidth,
+    height = window.innerHeight;
+    d3.select(this.htmlElement).select("svg").remove();
+    
+    this.projection = this.projections[index-1].value;    
+    var projection = this.projection;
+
+    var plane_path = d3.geoPath()
+            .projection(projection);
+
+    var svg = d3.select(this.htmlElement).append("svg")
+        .attr("width", width)
+        .attr("height", height)
+        .attr("class", "map");
+        
+    var g = svg.append("g");
+    var path = d3.geoPath()
+        .projection(projection);
+        
+    // load and display the World
+    // d3.json("https://unpkg.com/world-atlas@1/world/110m.json", function(error, topology) {
+      d3.json("./assets/world-110m.json", function(error, topology) {
+      
+        g.selectAll("path")
+          .data(topojson.feature(topology, topology.objects.countries)
+              .features)
+          .enter()
+          .append("path")
+          .attr("d", path)
+          ;
+    });
+    
   }
   
 
